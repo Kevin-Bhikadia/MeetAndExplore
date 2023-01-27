@@ -24,11 +24,21 @@ class GroupInfo extends StatefulWidget {
 class _GroupInfoState extends State<GroupInfo> {
   String userName = "";
   Stream? members;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     getMembers();
+    setUserName();
+  }
+
+  setUserName() async {
+    HelperFunction.getUserNameFromSF().then((value) {
+      setState(() {
+        userName = value!;
+      });
+    });
   }
 
   getMembers() async {
@@ -65,8 +75,8 @@ class _GroupInfoState extends State<GroupInfo> {
                     context: context,
                     builder: (context) {
                       return AlertDialog(
-                        title: Text("Unsubscribe"),
-                        content: Text(
+                        title: const Text("Unsubscribe"),
+                        content: const Text(
                             "Are you sure you want to unsubscribe the group"),
                         actions: [
                           IconButton(
@@ -84,9 +94,7 @@ class _GroupInfoState extends State<GroupInfo> {
                                   setState(() {
                                     userName = value!;
                                   });
-                                  print(userName);
                                 });
-                                print("admin: ${widget.adminName}");
                                 DatabaseService(
                                         uid: FirebaseAuth
                                             .instance.currentUser!.uid)
@@ -104,7 +112,51 @@ class _GroupInfoState extends State<GroupInfo> {
                       );
                     });
               },
-              icon: const Icon(Icons.exit_to_app))
+              icon: const Icon(Icons.exit_to_app)),
+          widget.adminName ==
+                  "${FirebaseAuth.instance.currentUser!.uid}_$userName"
+              ? IconButton(
+                  onPressed: () async {
+                    showDialog(
+                        barrierDismissible: true,
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text("Delete"),
+                            content: const Text(
+                                "The data will be permanently lost. Are you sure you want to delete the group?"),
+                            actions: [
+                              IconButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  icon: const Icon(
+                                    Icons.cancel,
+                                    color: Colors.red,
+                                  )),
+                              IconButton(
+                                  onPressed: () async {
+                                    nextScreenReplace(
+                                        context, const HomePage());
+                                    DatabaseService(
+                                            uid: FirebaseAuth
+                                                .instance.currentUser!.uid)
+                                        .deleteGroup(
+                                            widget.groupId, widget.groupName);
+                                  },
+                                  icon: const Icon(
+                                    Icons.done,
+                                    color: Colors.green,
+                                  ))
+                            ],
+                          );
+                        });
+                  },
+                  icon: const Icon(Icons.more_vert),
+                )
+              : const SizedBox(
+                  width: 0,
+                )
         ],
       ),
       body: Container(

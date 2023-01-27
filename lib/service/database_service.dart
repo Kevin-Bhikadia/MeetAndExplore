@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 
 class DatabaseService {
   final String? uid;
@@ -59,7 +58,7 @@ class DatabaseService {
 
     return await userDocumentReference.update({
       "groups":
-          FieldValue.arrayUnion(["${groupDocumentReference.id}_${groupName}"])
+          FieldValue.arrayUnion(["${groupDocumentReference.id}_$groupName"])
     });
   }
 
@@ -140,5 +139,14 @@ class DatabaseService {
       "recentMessageSender": chatMessageData['sender'],
       "recentMessageTime": chatMessageData['time'].toString(),
     });
+  }
+
+//  delete a group
+  Future deleteGroup(String groupId, String groupName) async {
+    DocumentReference userDocumentReference = userCollection.doc(uid);
+    await userDocumentReference.update({
+      "groups": FieldValue.arrayRemove(["${groupId}_$groupName"]),
+    });
+    groupCollection.doc(groupId).delete();
   }
 }
